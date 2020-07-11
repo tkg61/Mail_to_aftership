@@ -11,6 +11,8 @@ from html.parser import HTMLParser
 import re
 import aftership
 import time
+import sys
+import getopt
 import logging
 # Default logging level for dependencies above. Google is a little chatty
 logging.basicConfig(level=logging.ERROR)
@@ -206,9 +208,9 @@ def search_messages(messages, grab_only_first_match=True):
     return nums
 
 
-def upload_nums(t_nums):
+def upload_nums(track_nums):
     # Create our request - https://help.aftership.com/hc/en-us/articles/115008491328-Locate-slug-for-a-courier
-    for t_num, info in t_nums.items():
+    for t_num, info in track_nums.items():
         tracking = {'slug': info[0], 'tracking_number': t_num, "title": info[1]}
         logger.debug(tracking)
         # if you want to test leave in debug above
@@ -224,31 +226,72 @@ def upload_nums(t_nums):
 
 
 if __name__ == '__main__':
-    # change to logging.WARNING when you are ready to upload
-    logger.setLevel(logging.DEBUG)
-    # Delete any existing tracking that is delivered?
-    run_cleanup = False
-    # Aftership API Key - https://www.aftership.com/
-    aftership.api_key = "YOUR-API-KEY"
-    # Gmail search query - https://support.google.com/mail/answer/7190?hl=en
-    # most shipping companies won't track items beyond 120days (good to test your search with though), better to do 1d
-    q = "in:inbox (+tracking +fedex|usps|ups|lasership) newer_than:7d"
-    # How many accounts you want to add. Additional methods to list will add more accounts (seperate API keys needed)
-    # https://developers.google.com/gmail/api/quickstart/python
-    c = [gmail_login("myemailaddressbeforthe@"), gmail_login("myemailaddressbeforthe@2"),
-         gmail_login("myemailaddressbeforthe@3")]
-    # Obtain our messages for all of our accounts
-    msgs = get_messages(q,c)
-    if len(msgs) > 0:
-        logger.debug("Messages found: " + str(len(msgs)))
-        # parse email bodies for tracking numbers
-        t_nums = search_messages(msgs)
-        # upload numbers to aftership
-        upload_nums(t_nums)
-    else:
-        print("No messages found with search query, maybe you haven't received any emails with tracking recently?")
 
-    # running this after to make sure we don't delete and then re-upload. disabling this for testing might be good.
-    # If you upload a delivered tracking number just reduce the gmail query newer_than param
-    if run_cleanup:
+    # Get arguments
+    # option for cleaning
+    # option for debugging
+    # option for running search
+    debug = None
+    cleanup = False
+    search = False
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "hrd:c", ["search", "debug", "cleanup"])
+    except getopt.GetoptError:
+        print('mail_import.py -s -d <true or false> -c')
+        print('Set either -s or -c to search or cleanup. -d flag is always needed')
+        sys.exit(2)
+    for opt, arg in opts:
+        if opt == '-h':
+            print('mail_import.py -d <true or false> -c ')
+            sys.exit()
+        elif opt in ("-s", "--search"):
+            print("Searching mail")
+
+        elif opt in ("-d", "--debug"):
+            try:
+                if arg == 'false':
+                    print("Debug set to Warning, will send to Aftership if you are searching")
+                    debug = logging.WARNING
+                else:
+                    print("Debug set to Debug, will NOT send to Aftership if you are searching")
+                    debug = logging.DEBUG
+
+                logger.setLevel(debug)
+            except Exception as e:
+                print(e)
+                sys.exit(2)
+        elif opt in ("-c", "--cleanup"):
+            print("Running cleanup")
+            cleanup = True
+
+    if not debug:
+        print("Debug flag not set")
+        sys.exit()
+
+    if search:
+        # Aftership API Key - https://www.aftership.com/
+        aftership.api_key = "YOUR-API-KEY"
+        # Gmail search query - https://support.google.com/mail/answer/7190?hl=en
+        # most shipping companies won't track items beyond 120days (good to test your search with though)
+        # better to do 1d or 1h
+        q = "in:inbox (+tracking +fedex|usps|ups|lasership) newer_than:7d"
+        # How many accounts you want to add.
+        # Additional methods to list will add more accounts (seperate API keys/pickle files needed)
+        # https://developers.google.com/gmail/api/quickstart/python
+        c = [gmail_login("myemailaddressbeforthe@"), gmail_login("myemailaddressbeforthe@2"),
+             gmail_login("myemailaddressbeforthe@3")]
+        # Obtain our messages for all of our accounts
+        msgs = get_messages(q, c)
+        if len(msgs) > 0:
+            logger.debug("Messages found: " + str(len(msgs)))
+            # parse email bodies for tracking numbers
+            t_nums = search_messages(msgs)
+            # upload numbers to aftership
+            upload_nums(t_nums)
+        else:
+            print("No messages found with search query, maybe you haven't received any emails with tracking recently?")
+
+    # running this after to make sure we don't delete and then re-upload. Skipping this while testing is recommended.
+    # best to run cleanup daily as a seperate cronjob, etc
+    if cleanup:
         cleanup_tracking()
