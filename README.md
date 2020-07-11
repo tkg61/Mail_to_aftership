@@ -18,7 +18,8 @@ How to run:
     - -s to search 
     - -d to set debug to true or false (true is default and will NOT upload search results, false will upload)
     - -c to run cleanup, the script will remove any "delivered" packages as these won't be automatically removed from aftership (that i know of)
-Note:
+    
+Notes:
   - Gmail Oauth will require a browser to log in or use the link provided in the console. this will generate a .pickle file that if used once a day will not require a re-log in
   - Be cautious of when you run search and cleanup. Don't want have a broad search that gets cleaned up often consuming your free 50 tracking's per month
   - Tracking numbers that are currently in Aftership will not be re-uploaded. This means you can run the script more often with a broader search keeping in mind the above note about cleaning
