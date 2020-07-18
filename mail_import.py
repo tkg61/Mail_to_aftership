@@ -246,6 +246,7 @@ if __name__ == '__main__':
             sys.exit()
         elif opt in ("-s", "--search"):
             print("Searching mail")
+            search = True
 
         elif opt in ("-d", "--debug"):
             try:
