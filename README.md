@@ -20,7 +20,7 @@ How to run:
     - -c to run cleanup, the script will remove any "delivered" packages as these won't be automatically removed from aftership (that i know of)
     
 Notes:
-  - Gmail Oauth will require a browser to log in or use the link provided in the console. this will generate a .pickle file that if used once a day will not require a re-log in
+  - Gmail Oauth will require a browser to log in or use the link provided in the console on the first run. This will generate a .pickle file that, if used once a day, will not require a re-log in
   - Be cautious of when you run search and cleanup. Don't want have a broad search that gets cleaned up often consuming your free 50 tracking's per month
   - Tracking numbers that are currently in Aftership will not be re-uploaded. This means you can run the script more often with a broader search keeping in mind the above note about cleaning
   
@@ -38,4 +38,4 @@ Example 'production' usage with crontab:
   - 0 0 * * * python3 mail_import.py -c -d false
 
 Example Note: You could run search and cleanup at the same time but this would only work well if run once a day as you
-could potentially upload and cleanup numbers every time the script is run which could quickly consume your 50 free tracking numbers per month
+could potentially upload and cleanup the same tracking numbers every time the script is run which could quickly consume your 50 free tracking numbers per month
