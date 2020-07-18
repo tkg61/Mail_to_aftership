@@ -1,0 +1,17 @@
+pip>=20.1
+rsa>=4.0
+pyasn1>=0.4.8
+pytz>=2020.1
+six>=1.14.0
+cachetools>=4.1.0
+certifi>=2020.4.5.1
+urllib3>=1.25.9
+requests>=2.23.0
+google-api-python-client>=1.8.3
+chardet>=3.0.4
+httplib2>=0.17.3
+oauthlib>=3.1.0
+idna>=2.9
+aftership>=1.0.post2
+setuptools>=46.3.1
+uritemplate>=3.0.1
