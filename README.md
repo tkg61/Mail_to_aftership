@@ -26,16 +26,16 @@ Notes:
   
 Example tests/debugging:
 
-- python3 mail_import.py -s -d true 
-- python3 mail_import.py -s -d
+- python3 mail_import.py -d true -s 
+- python3 mail_import.py -d -s 
 
 Example 'production' usage with crontab:
 
 - Running every hour to search for new tracking numbers
-  - 0 * * * * python3 mail_import.py -s -d false
+  - 0 * * * * python3 mail_import.py -d false -s
 
 - Running at midnight to cleanup delivered packages 
-  - 0 0 * * * python3 mail_import.py -c -d false
+  - 0 0 * * * python3 mail_import.py -d false -c
 
 Example Note: You could run search and cleanup at the same time but this would only work well if run once a day as you
 could potentially upload and cleanup the same tracking numbers every time the script is run which could quickly consume your 50 free tracking numbers per month
