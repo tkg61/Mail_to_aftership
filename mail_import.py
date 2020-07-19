@@ -235,8 +235,9 @@ if __name__ == '__main__':
     cleanup = False
     search = False
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "hrd:c", ["search", "debug", "cleanup"])
-    except getopt.GetoptError:
+        opts, args = getopt.getopt(sys.argv[1:], "hsd:c", ["search", "debug", "cleanup"])
+    except getopt.GetoptError as e:
+        print(e)
         print('mail_import.py -s -d <true or false> -c')
         print('Set either -s or -c to search or cleanup. -d flag is always needed')
         sys.exit(2)
