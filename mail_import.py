@@ -146,7 +146,7 @@ def get_messages(query, creds_list):
     return trimmed_messages
 
 
-def cleanup_tracking(tracking_id=None):
+def cleanup_tracking():
     try:
         result = aftership.tracking.list_trackings(tag="Delivered")
     except aftership.exception.NotFound:
@@ -157,7 +157,7 @@ def cleanup_tracking(tracking_id=None):
         try:
             aftership.tracking.delete_tracking(tracking_id=tracking['id'])
         except aftership.exception.NotFound:
-            logger.warning(tracking_id + " was returned from the site but could not be deleted... :shrug:")
+            logger.warning(str(tracking['id']) + " was returned from the site but could not be deleted... :shrug:")
 
     return True
 
@@ -292,9 +292,10 @@ if __name__ == '__main__':
         print("Debug flag not set")
         sys.exit()
 
+    # Aftership API Key - https://www.aftership.com/
+    aftership.api_key = "YOUR-API-KEY"
+
     if search:
-        # Aftership API Key - https://www.aftership.com/
-        aftership.api_key = "YOUR-API-KEY"
         # Gmail search query - https://support.google.com/mail/answer/7190?hl=en
         # most shipping companies won't track items beyond 120days (good to test your search with though)
         # better to do 1d or 1h
