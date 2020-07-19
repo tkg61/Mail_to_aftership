@@ -17,3 +17,4 @@ idna>=2.9
 aftership>=1.0.post2
 setuptools>=46.3.1
 uritemplate>=3.0.1
+beautifulsoup4>=4.9.1

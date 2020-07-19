@@ -13,6 +13,7 @@ import aftership
 import time
 import sys
 import getopt
+from bs4 import BeautifulSoup
 import logging
 # Default logging level for dependencies above. Google is a little chatty
 logging.basicConfig(level=logging.ERROR)
@@ -94,11 +95,31 @@ def get_messages(query, creds_list):
                 message = service.users().messages().get(userId='me', id=msg_id['id']).execute()
                 # pprint.pprint(message)
                 body = ""
+                # if we have a single part email, just get the text
                 if 'data' in message['payload']['body']:
                     body = str(base64.urlsafe_b64decode(message['payload']['body']['data']), 'utf-8')
+                # if we have a multi-part email need to look to see if we get the email twice or actually multiple parts
                 elif 'parts' in message['payload']:
+                    # Look through the parts
                     for p in message['payload']['parts']:
-                        body += str(base64.urlsafe_b64decode(p['body']['data']), 'utf-8')
+                        # see if our parts are alternatives of each other plain and html or actually unique.
+                        # if alternative, then get the html version so we can remove all of it without losing tags early
+                        if message['payload']["mimeType"] == "multipart/alternative":
+                            # need this if distinguish the fact we have an alternative but we don't want text\plain
+                            # and we don't want the plain to get concat below if we did an AND
+                            if p["mimeType"] == "text/html":
+                                soup = BeautifulSoup(str(base64.urlsafe_b64decode(p['body']['data']), 'utf-8'),
+                                                     features="html.parser")
+                                # remove all script and style elements
+                                for script in soup(["script", "style"]):
+                                    script.extract()  # extract text
+
+                                # get text
+                                body += soup.get_text()
+
+                        else:
+                            # if it is not an alternative mime type then just concat all the parts
+                            body += str(base64.urlsafe_b64decode(p['body']['data']), 'utf-8')
                 else:
                     logging.error("had issues with message: " + str(message))
                     logger.debug('data' in message['payload']['body'])
@@ -110,9 +131,12 @@ def get_messages(query, creds_list):
                 # search for the "from" field and pull out the sender to title the shipment. if no sender, use msg_id
                 title = next((i['value'] for i in message['payload']['headers'] if i["name"] == 'From'), msg_id)
 
-                # i'd include this above but then it would just be too awesome of a one liner
+                # Clean up tile more
                 if "\"" in title:
                     title = title.split('"')[1]
+                if "<" in title:
+                    title = title.split('<')[0]
+                title = title.strip()
 
                 trimmed_messages[title] = (strip_tags(body))
 
@@ -183,7 +207,7 @@ def search_messages(messages, grab_only_first_match=True):
     # look through all the messages
     for subject, msg in messages.items():
         # get rid of extra characters we don't need
-        msg = msg.replace(" ", "").replace("\r\n", "")
+        msg = msg.replace(" ", "").replace("\r\n", "").replace("\n", "")
         # look through all our patterns
         for company, pattern in patterns.items():
             # see if a pattern matches
@@ -199,8 +223,6 @@ def search_messages(messages, grab_only_first_match=True):
                         # either grab the first match or grab all of them
                         if grab_only_first_match:
                             continue
-
-        logger.warning("Didn't match on a message ")
 
     if len(nums) != len(messages):
         logger.warning("The Regex didn't match on a message that was given to it")
@@ -276,7 +298,7 @@ if __name__ == '__main__':
         # Gmail search query - https://support.google.com/mail/answer/7190?hl=en
         # most shipping companies won't track items beyond 120days (good to test your search with though)
         # better to do 1d or 1h
-        q = "in:inbox (+tracking +fedex|usps|ups|lasership) newer_than:7d"
+        q = "in:inbox (+tracking +number +fedex|usps|ups|lasership) newer_than:7d"
         # How many accounts you want to add.
         # Additional methods to list will add more accounts (seperate API keys/pickle files needed)
         # https://developers.google.com/gmail/api/quickstart/python
