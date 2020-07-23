@@ -12,7 +12,7 @@ How to run:
   - Enable the Gmail API on your account - [Here](https://developers.google.com/gmail/api/quickstart/python) 
   - Download the credentials.json and place it in the folder of the mail_import.py file
   - Rename gmail credentials.json to be "myemailaddressbeforethe@_credentials.json" (e.g. bobsmith123_credentials.json)
-  - Set Gmail query to be the desired amount of hours/days to search through (testing > 2d, running = 1d or even 1h)
+  - Set Gmail query to be the desired amount of hours/days to search through (testing > 2d, running = 1h or equal to how often you run the script)
   - Add account(s) to gmail query list. Place your "bobsmith123" email in the method to pass so that it can find your file. Multiple emails in that list are fine. Make sure to copy the method "gmail_login("myemailaddressbeforthe@")" per account
   - Call script with the following paramater options
     - -s to search 

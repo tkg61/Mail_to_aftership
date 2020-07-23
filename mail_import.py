@@ -226,7 +226,7 @@ def search_messages(messages, grab_only_first_match=True):
 
     if len(nums) != len(messages):
         logger.warning("The Regex didn't match on a message that was given to it")
-
+        logger.warning("Tracking Numbers found: " + str(len(nums)) + ", Messages searched: " + str(len(messages)))
     return nums
 
 
